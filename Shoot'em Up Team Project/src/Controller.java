@@ -14,6 +14,9 @@ public class Controller implements Runnable {
 	private Vector<GunMissile> missile = new Vector<GunMissile>();
 	private Vector<Alien> aliens=new Vector<Alien>();
 	private boolean setupDone=false;
+	private boolean gameStarted = false;
+	private boolean paused = false;
+	private boolean gameOver = false;
 	
 	public Controller(View view)
 	{
@@ -29,11 +32,10 @@ public class Controller implements Runnable {
 		runAliens = new Thread(this);
 		detect = new HitDetect(aliens, missile);
 		hitDetect = new Thread(detect);
-		hitDetect.start();
 		refresh();
 	}
 	void setupGame(){
-		view.drawlingPanel.setup(gun,aliens,missile,setupDone);
+		view.drawlingPanel.setup(gun,aliens,missile,setupDone,paused,gameOver);
 		setupDone=true;
 		
 	}
@@ -71,23 +73,27 @@ public class Controller implements Runnable {
 		@Override
 		public void run() {
 			while(true){
-				for(int i=0;i<(missile.size()-1);i++)
+				if(!paused)
 				{
-					System.out.println("missile.size()="+missile.size());
-					for(int j=0;j<aliens.size();j++)
+					//System.out.println("Hit Detect");
+					for(int i=0;i<(missile.size()-1);i++)
 					{
-						reGet();
-						System.out.println("i="+i);
-						System.out.println("j="+j);
-						if(missile.get(i).getXStart()>=aliens.get(j).getX()&&
-								missile.get(i).getXStart()<(aliens.get(j).getX()+20))
+						//System.out.println("missile.size()="+missile.size());
+						for(int j=0;j<aliens.size();j++)
 						{
-							if(missile.get(i).getYStart()<=aliens.get(j).getY()&&
-									missile.get(i).getYStart()>(aliens.get(j).getY()-5))
+							reGet();
+							//System.out.println("i="+i);
+							//System.out.println("j="+j);
+							if(missile.get(i).getXStart()>=aliens.get(j).getX()&&
+									missile.get(i).getXStart()<(aliens.get(j).getX()+25))
 							{
-								removeMissile();
-								removeAlien(j);
-								reGet();
+								if(missile.get(i).getYStart()<=aliens.get(j).getY()&&
+										missile.get(i).getYStart()>(aliens.get(j).getY()-12))
+								{
+									removeMissile();
+									removeAlien(j);
+									reGet();
+								}
 							}
 						}
 					}
@@ -103,31 +109,58 @@ public class Controller implements Runnable {
 	@Override
 	public void run() {
 		int count=1;
+		int round=1;
 		while(true)
 		{
-			for(int j=0;j<60;j++)
-			{	
+			//System.out.println(paused);
+				for(int j=0;j<60;j++)
+				{	
+					for(int i = 0;i<alienCount;i++)
+					{
+					//	System.out.println("count="+count+"\ncount%2="+count%2);
+						
+						if (j<30) {
+							aliens.get(i).moveRight(5);
+						}
+						else
+							aliens.get(i).moveLeft(5);
+					}
+					refresh();
+					try {
+						Thread.sleep(20);
+					} catch (InterruptedException e) { }
+				}
 				for(int i = 0;i<alienCount;i++)
 				{
-				//	System.out.println("count="+count+"\ncount%2="+count%2);
-					
-					if (j<30) {
-						aliens.get(i).moveRight(5);
-					}
-					else
-						aliens.get(i).moveLeft(5);
+					if(count%2==0)
+					aliens.get(i).moveDown(5);
 				}
-				refresh();
-				try {
-					Thread.sleep(20);
-				} catch (InterruptedException e) { }
-			}
-			for(int i = 0;i<alienCount;i++)
-			{
-				if(count%2==0)
-				aliens.get(i).moveDown(5);
-			}
-			count++;
+				count++;
+				System.out.println(aliens.isEmpty());
+				if(aliens.isEmpty()&&round==1){
+					missile.removeAllElements();
+					alienCount=10;
+					for(int i = 0; i<alienCount;i++)
+					{
+						aliens.add(new Alien(i));
+					}
+					view.drawlingPanel.setup(gun,aliens,missile,setupDone,paused,gameOver);
+					round++;
+				}
+				else if(aliens.isEmpty()&&round==2){
+					alienCount=15;
+					missile.removeAllElements();
+					for(int i = 0; i<alienCount;i++)
+					{
+						aliens.add(new Alien(i));
+					}
+					view.drawlingPanel.setup(gun,aliens,missile,setupDone,paused,gameOver);
+					round++;
+				}
+				else if(aliens.isEmpty()&&round==3){
+					gameOver=true;
+					view.drawlingPanel.setup(gun,aliens,missile,setupDone,paused,gameOver);
+				}
 		}
 	}
 	class MyKeyListener extends KeyAdapter {
@@ -154,13 +187,34 @@ public class Controller implements Runnable {
 						missile.remove(0);
 						missile.trimToSize();
 					}
-					missile.add(new GunMissile(gun.getX()+50));
+					missile.add(new GunMissile(gun.getX()+15));
 				}
 			}
 			else if(keyCode == KeyEvent.VK_ENTER)
 			{
-				setupGame();
-				runAliens.start();
+				if(!gameStarted){
+					setupGame();
+					runAliens.start();
+					hitDetect.start();
+					gameStarted=true;
+				}
+			}
+			else if (keyCode == KeyEvent.VK_ESCAPE)
+			{
+				if(gameStarted)
+				{
+					if(paused==false){
+						System.out.println("paused set TRUE");
+						paused=true;
+						view.drawlingPanel.setup(gun, aliens, missile, setupDone, paused,gameOver);
+					}
+					else{
+						System.out.println("paused set FALSE");
+						paused=false;
+						//missile.removeAllElements();
+						view.drawlingPanel.setup(gun, aliens, missile, setupDone, paused,gameOver);
+					}
+				}
 			}
 			refresh();
 		}

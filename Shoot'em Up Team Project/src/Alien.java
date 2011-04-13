@@ -9,11 +9,21 @@ public class Alien {
 	private int y;
 	BufferedImage image;
 	public Alien(int alienCount){
-		x=(50*alienCount)+75;
-		y=100;
+		if(alienCount>9){
+			x=(50*(alienCount-10))+75;
+			y=200;
+		}
+		else if(alienCount>4){
+			x=(50*(alienCount-5))+75;
+			y=150;
+		}
+		else{
+			x=(50*alienCount)+75;
+			y=100;
+		}
 		try {
 			java.net.URL imageURL = Gun.class
-					.getResource("/image/alien.jpg");
+					.getResource("/image/cowboy.jpg");
 			image = ImageIO.read(imageURL);
 		} catch (IOException ioe) {System.out.println("Error: Failed to load image.");
 		}

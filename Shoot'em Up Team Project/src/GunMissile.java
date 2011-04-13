@@ -16,7 +16,7 @@ public class GunMissile implements Runnable{
 		xStart=x;
 		try {
 			java.net.URL imageURL = Gun.class
-					.getResource("/image/missile.jpg");
+					.getResource("/image/bullet.jpg");
 			image = ImageIO.read(imageURL);
 		} catch (IOException ioe) {System.out.println("Error: Failed to load image.");
 		}
