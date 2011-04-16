@@ -8,35 +8,37 @@ import javax.swing.JPanel;
 
 public class DrawlingPanel extends JPanel {
 	private Gun gun;
-	private Vector<Alien> aliens=new Vector<Alien>();
+	private Vector<Cowboy> cowboys=new Vector<Cowboy>();
 	private Vector<GunMissile> missile;
-	private boolean setupDone;
+	private boolean gameStarted;
 	private boolean paused;
 	private boolean gameOver;
+	private boolean gameOverLose;
 	
 	public DrawlingPanel() {
 		setPreferredSize(new Dimension(500,
 				500));
 		setBackground(Color.BLACK);
 	}
-	public void setup(Gun gun, Vector<Alien>aliens, Vector<GunMissile> missile,
-			boolean setupDone, boolean paused, boolean gameOver){
+	public void setup(Gun gun, Vector<Cowboy>cowboys, Vector<GunMissile> missile,boolean gameStarted
+			, boolean paused, boolean gameOver, boolean gameOverLose){
 		this.gun=gun;
-		this.aliens=aliens;
+		this.cowboys=cowboys;
 		this.missile=missile;
-		this.setupDone=setupDone;
+		this.gameStarted=gameStarted;
 		this.paused=paused;
 		this.gameOver=gameOver;
+		this.gameOverLose=gameOverLose;
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		if(!setupDone){
+		if(!gameStarted){
+			//System.out.println("Drawling Menu");
 			drawMenu(g);
 		}
-		if(setupDone&&!paused&&!gameOver){
-			System.out.println("Drawling");
+		if(gameStarted&&!paused&&!gameOver&&!gameOverLose){
 			drawGun(gun,g);
-			drawAlien(aliens, g);
+			drawAlien(cowboys, g);
 			drawMissile(missile, g);
 		}
 		if(paused){
@@ -44,6 +46,9 @@ public class DrawlingPanel extends JPanel {
 		}
 		if(gameOver){
 			drawWin(g);
+		}
+		if(gameOverLose){
+			drawLose(g);
 		}
 		
 	}
@@ -88,17 +93,24 @@ public class DrawlingPanel extends JPanel {
 		g.setFont(font);
 		g.drawString("You Won", 210, 300);
 	}
+	public void drawLose(Graphics g){
+		Font font = new Font("Arial", Font.BOLD, 60);
+		g.setFont(font);
+		g.setColor(new Color(250, 165, 0));
+		g.drawString("Slow Draw", 100, 200);
+		g.drawString("You Lose", 120, 260);
+	}
 	public void drawGun(Gun gun, Graphics g){
 		g.drawImage(gun.getImage(), gun.getX(), gun.getY(), gun.getX()+100, gun.getY()+50, 0,
 				0, 100, 100, null);
 	}
-	public void drawAlien(Vector<Alien> aliens, Graphics g){
-		for(int i = 0;i<aliens.size();i++)
+	public void drawAlien(Vector<Cowboy> cowboies, Graphics g){
+		for(int i = 0;i<cowboies.size();i++)
 		{
 			/* System.out.println("alien.length="+alien.length);
 			System.out.println("i="+i);
 			System.out.println(alien[i].toString()); */
-			g.drawImage(aliens.get(i).getImage(), aliens.get(i).getX(), aliens.get(i).getY(), aliens.get(i).getX()+100, aliens.get(i).getY()+50, 0,
+			g.drawImage(cowboies.get(i).getImage(), cowboies.get(i).getX(), cowboies.get(i).getY(), cowboies.get(i).getX()+100, cowboies.get(i).getY()+50, 0,
 					0, 100, 50, null);
 		}
 	}

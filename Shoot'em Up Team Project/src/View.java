@@ -31,7 +31,7 @@ public class View {
 		mainPanel.add(drawlingPanel, BorderLayout.CENTER);
 		mainPanel.add(statusPanel, BorderLayout.SOUTH);
 
-		frame = new JFrame("Team 1 Space Invaders");
+		frame = new JFrame("Team 1 Shoot'em Up");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setContentPane(mainPanel);
 		frame.setResizable(false);
