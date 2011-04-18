@@ -6,13 +6,12 @@ public class ShootemUpApp {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				View view = new View();
-				new Controller(view);
+				 new Controller(view);
 			}
 		});
 	}
 	public static void main(String[] args) {
-		new ShootemUpApp();
-
+			new ShootemUpApp();
 	}
 
 }

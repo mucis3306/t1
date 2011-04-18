@@ -9,7 +9,6 @@ import javax.swing.UIManager;
 public class View {
 	JFrame frame;
 	JPanel mainPanel;
-	StatusPanel statusPanel;
 	DrawlingPanel drawlingPanel;
 	
 	/**
@@ -22,14 +21,12 @@ public class View {
 		} catch (Exception e) {
 		}
 
-		statusPanel = new StatusPanel();
 		drawlingPanel = new DrawlingPanel();
 
 		mainPanel = new JPanel();
 		mainPanel.setOpaque(true);
 		mainPanel.setLayout(new BorderLayout());
 		mainPanel.add(drawlingPanel, BorderLayout.CENTER);
-		mainPanel.add(statusPanel, BorderLayout.SOUTH);
 
 		frame = new JFrame("Team 1 Shoot'em Up");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

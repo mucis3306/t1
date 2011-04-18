@@ -4,19 +4,19 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 
-public class GunMissile implements Runnable{
+public class CowboyGunMissile implements Runnable{
 	private int xStart;
 	private int yStart;
 	BufferedImage image;
 	private Thread shoot;
 
-	public GunMissile(int x)
+	public CowboyGunMissile(int x, int y)
 	{
-		yStart=400;
+		yStart=y;
 		xStart=x;
 		try {
-			java.net.URL imageURL = GunMissile.class
-					.getResource("/image/bullet.jpg");
+			java.net.URL imageURL = CowboyGunMissile.class
+					.getResource("/image/bulletdown.jpg");
 			image = ImageIO.read(imageURL);
 		} catch (IOException ioe) {System.out.println("Error: Failed to load image.");
 		}
@@ -25,11 +25,11 @@ public class GunMissile implements Runnable{
 	}	
 	@Override
 	public void run() {
-		while(yStart>0)
+		while(yStart<500)
 		{
-			for(int i=yStart;i>=-15;i-=5)
+			for(int i=yStart;i<=500;i+=5)
 			{
-				moveUp();
+				moveDown();
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) { }
@@ -46,11 +46,12 @@ public class GunMissile implements Runnable{
 		return yStart;
 	}
 	
-	public void moveUp()
+	public void moveDown()
 	{
-		yStart-=5;
+		yStart+=5;
 	}
 	public BufferedImage getImage() {
 		return image;
 	}
 }
+

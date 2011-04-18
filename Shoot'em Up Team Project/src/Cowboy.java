@@ -31,7 +31,7 @@ public class Cowboy {
 			y=100;
 		}
 		try {
-			java.net.URL imageURL = Gun.class
+			java.net.URL imageURL = Cowboy.class
 					.getResource("/image/cowboy.jpg");
 			image = ImageIO.read(imageURL);
 		} catch (IOException ioe) {System.out.println("Error: Failed to load image.");
