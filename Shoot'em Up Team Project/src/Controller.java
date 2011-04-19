@@ -15,22 +15,22 @@ public class Controller implements Runnable {
 	private Thread cowboyShoot;
 	private int cowboyCount;
 	private Vector<GunMissile> missile = new Vector<GunMissile>();
-	private Vector<CowboyGunMissile> cowboymissile = new Vector<CowboyGunMissile>();
+	private Vector<CowboyGunMissile> cowboyMissile = new Vector<CowboyGunMissile>();
 	private Vector<Cowboy> cowboys=new Vector<Cowboy>();
 	private boolean gameStarted = false;
 	private boolean paused = false;
 	private boolean gameOver;
 	private boolean gameOverLose;
+	private boolean removing=false;
 	
 	public Controller(View view)
 	{
 		this.view=view;
-		//setupGame();
 		setupListeners();
 		runCowboys = new Thread(this);
-		detect = new HitDetect(cowboys, missile, cowboymissile);
+		detect = new HitDetect();
 		hitDetect = new Thread(detect);
-		shoot = new CowboyShoot(cowboys, cowboymissile);
+		shoot = new CowboyShoot();
 		cowboyShoot = new Thread(shoot);
 		refresh();
 	}
@@ -44,7 +44,7 @@ public class Controller implements Runnable {
 		}
 		gameOver=false;
 		gameOverLose=false;
-		view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+		view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 	}
 	void refresh(){
 		view.drawlingPanel.refresh();
@@ -61,7 +61,7 @@ public class Controller implements Runnable {
 			return false;
 	}
 	
-	public void removeAlien(int x){
+	public void removeCowboy(int x){
 		cowboys.remove(x);
 		cowboyCount--;
 	}
@@ -69,10 +69,16 @@ public class Controller implements Runnable {
 		missile.remove(0);
 		missile.trimToSize();
 	}
+	
+	public void newLevel(){
+		removing=true;
+		missile.removeAllElements();
+		cowboyMissile.removeAllElements();
+	}
 
 	public void removeCowboyMissile() {
-		cowboymissile.remove(0);
-		cowboymissile.trimToSize();
+		cowboyMissile.remove(0);
+		cowboyMissile.trimToSize();
 	}
 
 	public Vector<GunMissile> getMissile(){
@@ -80,40 +86,25 @@ public class Controller implements Runnable {
 	}
 
 	public Vector<CowboyGunMissile> getCowboyMissile(){
-		return cowboymissile;
+		return cowboyMissile;
 	}
 
 	public Vector<Cowboy> getCowboys(){
 		return cowboys;
 	}
 
-
 	public class CowboyShoot implements Runnable{
-		private Vector<Cowboy> cowboys = new Vector<Cowboy>();
-		private Vector<CowboyGunMissile> missile = new Vector<CowboyGunMissile>();
 		private Random numberGenerator = new Random();
-		public CowboyShoot( Vector<Cowboy> cowboys, Vector<CowboyGunMissile> missile) {
-			this.missile = missile;
-			this.cowboys = cowboys;
-		}
-
-		private void reGet(){
-			this.cowboys=getCowboys();
-			this.missile=getCowboyMissile();
-		}
-
 		@Override
 		public void run() {
 			while(true) {
-				if( !(paused) && !(gameOverLose == true) && !(gameOver == true) ) {
-					reGet();
+				if(!paused&&!gameOverLose&&!gameOver) {
 					for(int i = 0; i < cowboys.size(); i++) {
 						if(numberGenerator.nextInt(100) <= 20) {
-							if(missile.size() > 20) {
-								missile.removeAllElements();
-								missile.trimToSize(); }
+							if(cowboyMissile.size() > 20) {
+								removeCowboyMissile(); }
 							
-							missile.add(new CowboyGunMissile(cowboys.get(i).getX(), cowboys.get(i).getY() - 5));
+							cowboyMissile.add(new CowboyGunMissile(cowboys.get(i).getX(), cowboys.get(i).getY() - 5));
 						}
 					}
 				}
@@ -124,33 +115,22 @@ public class Controller implements Runnable {
 
 	public class HitDetect implements Runnable{
 		
-		private Vector<GunMissile> missile = new Vector<GunMissile>();
-		private Vector<Cowboy> cowboys=new Vector<Cowboy>();
-		private Vector<CowboyGunMissile> cowboymissile = new Vector<CowboyGunMissile>();
-		public HitDetect( Vector<Cowboy> cowboys, Vector<GunMissile> missile, Vector<CowboyGunMissile> cowboymissile){
-			this.missile=missile;
-			this.cowboys=cowboys;
-			this.cowboymissile= cowboymissile;
-			
-		}
 		public void detecting(){
-				for(int i = 0; i < (cowboymissile.size()); i++) {
-
-						if(cowboymissile.get(i).getXStart() >= gun.getX() &&
-							cowboymissile.get(i).getXStart() <= gun.getX() + 30 &&
-							cowboymissile.get(i).getYStart() >= 385 &&
-							cowboymissile.get(i).getYStart() <= 455) {
-							
+		
+				for(int i = 0; i < (cowboyMissile.size()); i++) {
+						if(!removing&&cowboyMissile.get(i).getXStart() >= gun.getX() &&
+							cowboyMissile.get(i).getXStart() <= gun.getX() + 30 &&
+							cowboyMissile.get(i).getYStart() >= 385 &&
+							cowboyMissile.get(i).getYStart() <= 455) {
 								removeCowboyMissile();
 								gameOverLose=true;
-								view.drawlingPanel.setup(gun,cowboys,getMissile(),gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+								view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 						}
 				}
 				for(int i=0;i<(missile.size()-1);i++)
 				{
 					for(int j=0;j<cowboys.size();j++)
 					{
-						reGet();
 						if(missile.get(i).getXStart()>=cowboys.get(j).getX()&&
 						missile.get(i).getXStart()<(cowboys.get(j).getX()+25))
 						{
@@ -158,17 +138,9 @@ public class Controller implements Runnable {
 									missile.get(i).getYStart()>(cowboys.get(j).getY()-12))
 							{
 								removeMissile();
-								removeAlien(j);
-								reGet();
+								removeCowboy(j);
 							}
 						}
-					}
-				}
-				for(int i = 0;i<cowboys.size();i++)
-				{
-					if((cowboys.get(i).getY()+25)>=gun.getY()){
-						gameOverLose=true;
-						view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
 					}
 				}
 		}
@@ -182,13 +154,8 @@ public class Controller implements Runnable {
 					refresh();
 			}
 		}
-		private void reGet(){
-			this.cowboys=getCowboys();
-			this.missile=getMissile();
-		}
 	}
-	public int moveAliens(int round){
-		int count = 1;
+	public int moveCowboys(int round){
 			for(int j=0;j<60;j++)
 			{	
 				for(int i = 0;i<cowboyCount;i++)
@@ -204,59 +171,53 @@ public class Controller implements Runnable {
 					Thread.sleep(20);
 				} catch (InterruptedException e) { }
 			}
-			for(int i = 0;i<cowboyCount;i++)
-			{
-				if(count%2==0)
-				cowboys.get(i).moveDown(5);
-			}
-			count++;
 			if(cowboys.isEmpty()&&round==1){
-				missile.removeAllElements();
+				newLevel();
 				cowboyCount=10;
 				for(int i = 0; i<cowboyCount;i++)
 				{
 					cowboys.add(new Cowboy(i));
 				}
-				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+				removing=false;
+				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 				round++;
-				count=1;
 			}
 			else if(cowboys.isEmpty()&&round==2){
 				cowboyCount=15;
-				missile.removeAllElements();
+				newLevel();
 				for(int i = 0; i<cowboyCount;i++)
 				{
 					cowboys.add(new Cowboy(i));
 				}
-				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose,cowboymissile);
+				removing=false;
+				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose,cowboyMissile);
 				round++;
-				count=1;
 			}
 			else if(cowboys.isEmpty()&&round==3){
 				cowboyCount=20;
-				missile.removeAllElements();
+				newLevel();
 				for(int i = 0; i<cowboyCount;i++)
 				{
 					cowboys.add(new Cowboy(i));
 				}
-				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+				removing=false;
+				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 				round++;
-				count=1;
 			}
 			else if(cowboys.isEmpty()&&round==4){
 				cowboyCount=25;
-				missile.removeAllElements();
+				newLevel();
 				for(int i = 0; i<cowboyCount;i++)
 				{
 					cowboys.add(new Cowboy(i));
 				}
-				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+				removing=false;
+				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 				round++;
-				count=1;
 			}
 			else if(cowboys.isEmpty()&&round==5){
 				gameOver=true;
-				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboymissile);
+				view.drawlingPanel.setup(gun,cowboys,missile,gameStarted,paused,gameOver,gameOverLose, cowboyMissile);
 			}
 		return round;
 	}
@@ -265,7 +226,7 @@ public class Controller implements Runnable {
 		int round = 1;
 		while(true){
 			if(!paused&&!gameOver&&!gameOverLose){
-				round=moveAliens(round);
+				round=moveCowboys(round);
 			}
 			else{
 				if(gameOver||gameOverLose){
@@ -297,8 +258,7 @@ public class Controller implements Runnable {
 				{
 					if(missile.size()>15)
 					{
-						missile.remove(0);
-						missile.trimToSize();
+						removeMissile();
 					}
 					missile.add(new GunMissile(gun.getX()+15));
 				}
@@ -313,6 +273,18 @@ public class Controller implements Runnable {
 					cowboyShoot.start();
 				}
 				if(gameOver||gameOverLose){
+					try {
+						hitDetect.sleep(250);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					try {
+						runCowboys.sleep(250);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					cowboys.removeAllElements();
 					setupGame();
 				}
@@ -323,11 +295,11 @@ public class Controller implements Runnable {
 				{
 					if(!paused){
 						paused=true;
-						view.drawlingPanel.setup(gun, cowboys, missile,gameStarted, paused,gameOver,gameOverLose, cowboymissile);
+						view.drawlingPanel.setup(gun, cowboys, missile,gameStarted, paused,gameOver,gameOverLose, cowboyMissile);
 					}
 					else{
 						paused=false;
-						view.drawlingPanel.setup(gun, cowboys, missile,gameStarted, paused,gameOver,gameOverLose, cowboymissile);
+						view.drawlingPanel.setup(gun, cowboys, missile,gameStarted, paused,gameOver,gameOverLose, cowboyMissile);
 					}
 				}
 			}
